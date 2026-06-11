@@ -6,6 +6,72 @@ import numpy as np
 from PIL import Image, ImageGrab, ImageDraw, ImageFont
 import win32clipboard
 
+def get_random_noise_char():
+    # 使用特殊的、容易穿透 AI 视觉标记器的符号
+    chars = "一二三四五六七八九十abcdefgABCDEFG!@#$%^&*"
+    return random.choice(chars)
+
+
+def get_random_char():
+    # 随机生成干扰字符，制造语义干扰
+    chars = "一二三四五六七八九十abcdefgABCDEFG!@#$%^&*"
+    return random.choice(chars)
+
+def get_random_chinese_char():
+    """生成随机汉字，用于毒化 AI 的语义理解"""
+    val = random.randint(0x4e00, 0x9fa5)
+    return chr(val)
+
+def advanced_semantic_mask(image):
+    """
+    方案：微观字符伪装 + 骨架行打断
+    人眼可顺畅阅读大字，但 AI 的 Vision Token 会将微小字符误认为正文笔画，输出彻底乱码。
+    """
+    img = image.convert("RGBA")
+    width, height = img.size
+    
+    # 创建干扰图层
+    overlay = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(overlay)
+    
+    try:
+        # 使用非常小的字号，让人眼自动过滤为“下划线”或“背景灰尘”
+        font = ImageFont.truetype("msyh.ttc", 12)
+    except IOError:
+        font = ImageFont.load_default()
+        
+    # 1. 在字里行间高密度穿插微小字符（语义剥离）
+    for y in range(4, height, 14):
+        for x in range(2, width, 12):
+            if random.random() < 0.7:
+                # 使用半透明的灰色小字，粘连大字的边缘
+                draw.text((x, y), get_random_noise_char(), fill=(120, 120, 120, 90), font=font)
+                
+    # 2. 注入物理骨架破坏线（针对横向文本行检测）
+    # 绘制多条极细的、带有微小波浪的水平断续线，直接斩断字形
+    for i in range(0, height, 24):
+        y_base = i + random.randint(-3, 3)
+        for x in range(0, width, 15):
+            if random.random() < 0.8:
+                # 细线的颜色与背景或文字形成微弱反差
+                draw.line([(x, y_base), (x + 8, y_base + random.randint(-1, 1))], 
+                          fill=(130, 130, 130, 110), width=1)
+                
+    # 合并原图
+    img_masked = Image.alpha_composite(img, overlay).convert("RGB")
+    
+    # 3. 宏观几何微调：轻微的仿射形变（让 AI 无法进行传统的矩形对齐）
+    # 产生轻微的平行四边形倾斜，人眼毫无察觉
+    skew_factor = random.choice([-0.015, 0.015])
+    img_skewed = img_masked.transform(
+        (width, height), 
+        Image.AFFINE, 
+        (1, skew_factor, 0, 0, 1, 0), 
+        resample=Image.BILINEAR, 
+        fillcolor=(255, 255, 255)
+    )
+    
+    return img_skewed
 
 def multi_water_ripple_anti_ocr(image):
     """
@@ -69,10 +135,6 @@ def multi_water_ripple_anti_ocr(image):
             
     return out_img
 
-def get_random_char():
-    """生成随机特殊干扰字符，用来污染 AI 的 Token 提取器"""
-    chars = "一二三四五六七八九十★▲■●◆0123456789X#"
-    return random.choice(chars)
 
 def ultimate_physical_noise(image):
     """
@@ -125,11 +187,11 @@ def ultimate_physical_noise(image):
 
     # 阶段 5：注入实体干扰文字（字号设大，16-20像素，直接黏贴在原文字身上）
     try:
-        font = ImageFont.truetype("msyh.ttc", 16)
+        font = ImageFont.truetype("msyh.ttc", 32)
     except IOError:
         font = ImageFont.load_default()
         
-    num_chars = random.randint(25, 40)
+    num_chars = random.randint(25, 100)
     for _ in range(num_chars):
         x = random.randint(0, width - 20)
         y = random.randint(0, height - 20)
@@ -188,7 +250,7 @@ def main():
                 if current_fingerprint != last_processed_fingerprint:
                     print(f"📸 捕获截图 {img.size}，正在注入强效物理混合噪声层...")
                     
-                    protected_img = ultimate_physical_noise(multi_water_ripple_anti_ocr(ultimate_physical_noise(multi_water_ripple_anti_ocr(img))))
+                    protected_img = advanced_semantic_mask(ultimate_physical_noise(multi_water_ripple_anti_ocr(img)))
                     
                     protected_data = protected_img.tobytes()[:100] if hasattr(protected_img, 'tobytes') else b""
                     last_processed_fingerprint = (protected_img.size, protected_data)
