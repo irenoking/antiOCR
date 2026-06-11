@@ -35,7 +35,7 @@
 
 ### 1. 克隆仓库
 ```bash
-git clone [https://github.com/YourUsername/anti-ocr-clipboard-shield.git](https://github.com/YourUsername/anti-ocr-clipboard-shield.git)
+git clone [https://github.com/irenoking/anti-ocr-clipboard-shield.git](https://github.com/irenoking/anti-ocr-clipboard-shield.git)
 cd anti-ocr-clipboard-shield
 
 ```
