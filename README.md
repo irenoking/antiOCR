@@ -37,3 +37,57 @@
 ```bash
 git clone [https://github.com/YourUsername/anti-ocr-clipboard-shield.git](https://github.com/YourUsername/anti-ocr-clipboard-shield.git)
 cd anti-ocr-clipboard-shield
+
+```
+
+### 2. 安装依赖库
+
+打开命令行（CMD 或 PowerShell），运行以下命令安装专门处理图像和 Windows 剪贴板的依赖：
+
+```bash
+pip install pillow pywin32
+
+```
+
+---
+
+## 🚀 使用方法
+
+### 基础运行
+
+在项目根目录下，直接运行脚本：
+
+```bash
+python anti_ocr_clipboard.py
+
+```
+
+保持命令行窗口开启。此时，您可以正常使用 `Win + Shift + S` 或 `PrtScn` 截屏。截屏完成后，控制台会刷出：
+
+> 📸 捕获新截图 [800x600]，正在注入复合水波纹干涉场...
+> ✅ 处理完成！已完美送回剪贴板，请去微信粘贴发送测试。
+
+此时直接在微信、钉钉或任何社交软件中粘贴发送即可。
+
+### 🤫 进阶：后台完全隐形运行
+
+如果您不想开着黑色的控制台窗口，可以将脚本文件的后缀名从 `.py` 改为 **`.pyw`**（例如 `anti_ocr_clipboard.pyw`）。
+
+在 Windows 中，`.pyw` 格式会由后台的 `pythonw.exe` 静默启动，没有任何窗口。
+
+* **开机自启**：按下 `Win + R` 输入 `shell:startup` 打开系统启动文件夹，将该 `.pyw` 文件的快捷方式拖入其中即可。
+* **彻底关闭**：若想停止服务，只需打开 Windows 任务管理器，结束名为 `pythonw.exe` 的进程。
+
+---
+
+## ⚠️ 免责声明与技术边界
+
+1. **猫鼠游戏提示**：本工具针对的是 2026 年主流多模态模型（如微信自带 OCR 等云端大模型）的视觉检测特性。由于深度学习模型具有强大的泛化性，不能保证对所有未来的闭源或特定领域的专用 OCR 引擎达到 100% 混淆效果。
+2. **场景适用**：对于对比度极高的大字，AI 的纠错能力极强。建议在截取包含大段敏感文本、小字段落、网页表格等场景下使用本工具，防抓取效果最佳。
+
+---
+
+## 📄 开源协议
+
+本项目基于 **MIT License** 协议开源，详情请参阅 [LICENSE](https://www.google.com/search?q=LICENSE) 文件。
+
